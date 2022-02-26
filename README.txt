@@ -16,6 +16,9 @@ TO CONFIG -
   Save as "ws.h" in same folder (/include).
   
   Values:
+    SUBTOPIC = AWS IOT Thing Subscribe Topic (this can be found in the Thing's Policy)
+    PUBTOPIC = AWS IOT Thing Publish Topic (this can be found in the Thing's Policy)
+    
     WIFI_SETTINGS
       ssid = wifi network name
       password = wifi network password
