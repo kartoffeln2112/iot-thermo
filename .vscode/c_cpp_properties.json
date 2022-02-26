@@ -10,7 +10,7 @@
             "includePath": [
                 "f:/A-Senior/SPRING22/CS4485/AFRAME/thermo/include",
                 "f:/A-Senior/SPRING22/CS4485/AFRAME/thermo/src",
-                "f:/A-Senior/SPRING22/CS4485/AFRAME/thermo/.pio/libdeps/m5stack-core2/AWS-SDK-ESP/src",
+                "f:/A-Senior/SPRING22/CS4485/AFRAME/thermo/.pio/libdeps/m5stack-core2/PubSubClient/src",
                 "f:/A-Senior/SPRING22/CS4485/AFRAME/thermo/.pio/libdeps/m5stack-core2/ArduinoJson/src",
                 "f:/A-Senior/SPRING22/CS4485/AFRAME/thermo/.pio/libdeps/m5stack-core2/M5Core2/src",
                 "C:/Users/Pikachu.000/.platformio/packages/framework-arduinoespressif32/libraries/SD/src",
@@ -116,7 +116,7 @@
                 "path": [
                     "f:/A-Senior/SPRING22/CS4485/AFRAME/thermo/include",
                     "f:/A-Senior/SPRING22/CS4485/AFRAME/thermo/src",
-                    "f:/A-Senior/SPRING22/CS4485/AFRAME/thermo/.pio/libdeps/m5stack-core2/AWS-SDK-ESP/src",
+                    "f:/A-Senior/SPRING22/CS4485/AFRAME/thermo/.pio/libdeps/m5stack-core2/PubSubClient/src",
                     "f:/A-Senior/SPRING22/CS4485/AFRAME/thermo/.pio/libdeps/m5stack-core2/ArduinoJson/src",
                     "f:/A-Senior/SPRING22/CS4485/AFRAME/thermo/.pio/libdeps/m5stack-core2/M5Core2/src",
                     "C:/Users/Pikachu.000/.platformio/packages/framework-arduinoespressif32/libraries/SD/src",
@@ -231,6 +231,7 @@
                 "ARDUINO_ARCH_ESP32",
                 "ARDUINO_VARIANT=\"m5stack_core2\"",
                 "ARDUINO_BOARD=\"M5Stack Core2\"",
+                "__PLATFORMIO_BUILD_DEBUG__",
                 ""
             ],
             "cStandard": "c99",
