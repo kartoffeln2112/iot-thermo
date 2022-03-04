@@ -21,6 +21,7 @@ void wific::initWifi()
     m5client.setCertificate(awsset.certificate_pem_crt);
     m5client.setPrivateKey(awsset.private_pem_key);
     
+    // check that m5client is able to connect
     M5.Lcd.printf("\nM5Client to AWS\n");
     if (!m5client.connect(awsset.endpoint, awsset.port))
     {
@@ -34,6 +35,7 @@ void wific::initWifi()
     psclient.setServer(awsset.endpoint, awsset.port);
     psclient.setCallback(msgReceive);
 
+    // connect to MQTT
     M5.Lcd.print("Connecting to MQTT...");
     while (!psclient.connected())
     {

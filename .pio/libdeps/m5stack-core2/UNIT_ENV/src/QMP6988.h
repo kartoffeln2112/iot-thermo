@@ -128,7 +128,7 @@ private:
   QMP6988_S32_t getPressure02e(qmp6988_ik_data_t *ik, QMP6988_S32_t dp, QMP6988_S16_t tx);
   QMP6988_S16_t convTx02e(qmp6988_ik_data_t *ik, QMP6988_S32_t dt);
 
-  void softwareReset();
+  
 
 public:
   uint8_t init(uint8_t slave_addr=0x56, TwoWire* wire_in=&Wire);
@@ -141,6 +141,8 @@ public:
   void setFilter(unsigned char filter);
   void setOversamplingP(unsigned char oversampling_p);
   void setOversamplingT(unsigned char oversampling_t);
+
+  void softwareReset();
 
   uint8_t writeReg(uint8_t slave, uint8_t reg_add,uint8_t reg_dat);
   uint8_t readData(uint16_t slave, uint8_t reg_add, unsigned char* Read, uint8_t num);
