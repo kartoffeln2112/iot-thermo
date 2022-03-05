@@ -69,8 +69,8 @@ void loop() {
     M5.Lcd.printf("Temperature: %2.2f*C  \nHumidity: %0.2f%%  \nPressure: %0.2fPa\r\n", temp, humidity, pressure);
     M5.Lcd.printf("Analog Read: %d\nDigital Read: %d", anaRead, digiRead);
 
-    //wifi.checkMQTTConnect();
-    //wifi.publish(jout.c_str());
+    wifi.checkMQTTConnect();
+    wifi.publish(jout.c_str());
 
     delay(1000);
   }
