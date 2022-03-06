@@ -43,7 +43,7 @@ void loop() {
   uint16_t anaRead;
   int digiRead;
   float temp, humidity, pressure;
-  StaticJsonDocument<JSON_OBJECT_SIZE(4)> jdata;
+  StaticJsonDocument<JSON_OBJECT_SIZE(5)> jdata;
   String jout;
   
   // attempt to retrieve ENV III sensor info
@@ -60,6 +60,7 @@ void loop() {
     jdata["Temperature"].set(temp);
     jdata["Humidity"].set(humidity);
     jdata["Pressure"].set(pressure);
+    jdata["Moisture"].set(anaRead);
 
     serializeJson(jdata, jout);
 
