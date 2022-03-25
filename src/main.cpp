@@ -15,7 +15,7 @@ const char* ROOM_NAME = "room1";
 char draw_string[1024];
 
 bool env_sensor(float*, float*, float*);
-void earth_sensor(int*, uint16_t*);
+float earth_sensor();
 
 
 void setup() {  
@@ -40,9 +40,7 @@ void setup() {
 }
 
 void loop() {
-  uint16_t anaRead;
-  int digiRead;
-  float temp, humidity, pressure;
+  float temp, humidity, pressure, rh;
   StaticJsonDocument<JSON_OBJECT_SIZE(5)> jdata;
   String jout;
   
@@ -50,7 +48,7 @@ void loop() {
   bool sensor_success = env_sensor(&temp, &humidity, &pressure);
 
   // retrieve earth_sensor info
-  earth_sensor(&digiRead, &anaRead);
+  rh = earth_sensor();
 
   // skip loop if sensor information wasn't retrieved
   if (sensor_success)
@@ -60,7 +58,7 @@ void loop() {
     jdata["Temperature"].set(temp);
     jdata["Humidity"].set(humidity);
     jdata["Pressure"].set(pressure);
-    jdata["Moisture"].set(anaRead);
+    jdata["Moisture"].set(rh);
 
     serializeJson(jdata, jout);
 
@@ -68,12 +66,12 @@ void loop() {
     M5.Lcd.clear();
     M5.Lcd.setCursor(0,0);
     M5.Lcd.printf("Temperature: %2.2f*C  \nHumidity: %0.2f%%  \nPressure: %0.2fPa\r\n", temp, humidity, pressure);
-    M5.Lcd.printf("Analog Read: %d\nDigital Read: %d", anaRead, digiRead);
+    M5.Lcd.printf("Analog Read: %f\n", rh);
 
     wifi.checkMQTTConnect();
     wifi.publish(jout.c_str());
 
-    delay(1000);
+    delay(10000);
   }
 
 }
@@ -95,10 +93,11 @@ bool env_sensor(float *temp, float *humidity, float *pressure)
 }
 
 
-void earth_sensor(int *digiRead, uint16_t *anaRead)
+float earth_sensor()
 {
-  *anaRead = analogRead(36);
-  *digiRead = digitalRead(26);
+  float percent;
+  uint16_t anaRead = analogRead(36);
+  percent = abs((int)anaRead - 4095) / 100.0; 
 
-  return;
+  return percent;
 }

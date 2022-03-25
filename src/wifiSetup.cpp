@@ -110,7 +110,7 @@ void wific::checkWifiConnect()
 void wific::publish(const char* msg)
 {
     bool success = psclient.publish(PUBTOPIC, msg);
-    M5.Lcd.printf("Sending data to MQTT: %s", (success? "Complete":"Failed"));
+    M5.Lcd.printf("Sending data to MQTT: ");
     if (success)
     {
         M5.Lcd.print("Complete");
