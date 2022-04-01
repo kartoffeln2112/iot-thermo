@@ -28,7 +28,7 @@ void setup() {
   M5.Lcd.setTextColor(BLUE);
   M5.Lcd.setTextSize(2);
 
-  // initialize wifi/MQTT connections
+  // initialize wifi/MQTT/NTP connections
   wifi.initWifi();
 
   // begin ENV III sensor
@@ -41,7 +41,7 @@ void setup() {
 
 void loop() {
   float temp, humidity, pressure, rh;
-  StaticJsonDocument<JSON_OBJECT_SIZE(5)> jdata;
+  StaticJsonDocument<JSON_OBJECT_SIZE(6)> jdata;
   String jout;
   
   // attempt to retrieve ENV III sensor info
@@ -53,20 +53,22 @@ void loop() {
   // skip loop if sensor information wasn't retrieved
   if (sensor_success)
   {
+    // print status to screen
+    M5.Lcd.clear();
+    M5.Lcd.setCursor(0,0);
+    long unsigned int timestamp = wifi.getTimestamp();
+    M5.Lcd.printf("Temperature: %2.2f*C  \nHumidity: %0.2f%%  \nPressure: %0.2fPa\r\n", temp, humidity, pressure);
+    M5.Lcd.printf("Analog Read: %f\n", rh);
+
     // serialize data into JSON
+    jdata["Time"].set(timestamp);
     jdata["Room"].set(ROOM_NAME);
     jdata["Temperature"].set(temp);
     jdata["Humidity"].set(humidity);
     jdata["Pressure"].set(pressure);
     jdata["Moisture"].set(rh);
 
-    serializeJson(jdata, jout);
-
-    // print status to screen
-    M5.Lcd.clear();
-    M5.Lcd.setCursor(0,0);
-    M5.Lcd.printf("Temperature: %2.2f*C  \nHumidity: %0.2f%%  \nPressure: %0.2fPa\r\n", temp, humidity, pressure);
-    M5.Lcd.printf("Analog Read: %f\n", rh);
+    serializeJson(jdata, jout); 
 
     wifi.checkMQTTConnect();
     wifi.publish(jout.c_str());

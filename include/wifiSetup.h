@@ -4,6 +4,7 @@
 #include <WiFiClientSecure.h>
 #include <ArduinoJson.h>
 #include <PubSubClient.h>
+#include "time.h"
 
 #include "ws.h"
 
@@ -15,6 +16,7 @@ class wific {
         void checkMQTTConnect();
         void checkWifiConnect();
         void publish(const char* msg);
+        long unsigned int getTimestamp();
     private:
         WIFI_SETTINGS wifi_settings;
         AWS_SETTINGS awsset;

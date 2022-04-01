@@ -3,6 +3,18 @@
 wific::wific(){return;}
 void msgReceive(char* topic, uint8_t* payload, unsigned int length);
 
+long unsigned int wific::getTimestamp()
+{
+    struct tm timeinfo;
+    if (!getLocalTime(&timeinfo))
+    {
+        M5.Lcd.printf("Failed to obtain time");
+        return 0;
+    }
+    M5.Lcd.println(&timeinfo, "%A, %B %d %Y %H:%M:%S");
+    return mktime(&timeinfo);
+}
+
 void wific::initWifi()
 {    
     M5.Lcd.printf("\nConnecting to %s", wifi_settings.ssid);
@@ -15,6 +27,11 @@ void wific::initWifi()
         M5.Lcd.print(".");
     }
     M5.Lcd.printf("Success\n");
+
+    //connect to NTP & test
+    configTime(0, 0, "pool.ntp.org");
+    M5.Lcd.printf("NTP Time: ");
+    getTimestamp();
     
     // set up certificates
     m5client.setCACert(awsset.rootCA);
