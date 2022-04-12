@@ -4,6 +4,8 @@
 #include <WiFiClientSecure.h>
 #include <ArduinoJson.h>
 #include <PubSubClient.h>
+#include <esp_wpa2.h>
+#include <WiFiManager.h>
 #include "time.h"
 
 #include "ws.h"
@@ -20,8 +22,12 @@ class wific {
     private:
         WIFI_SETTINGS wifi_settings;
         AWS_SETTINGS awsset;
+        WiFiManager wifiManager;
         WiFiClientSecure m5client;
         PubSubClient psclient;
 
+        //bool homeConnect();
+        bool utdConnect();
+        bool connTimeout();
         void psErr(int8_t mqerr);
 };

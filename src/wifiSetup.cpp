@@ -15,18 +15,90 @@ long unsigned int wific::getTimestamp()
     return mktime(&timeinfo);
 }
 
-void wific::initWifi()
-{    
+/*bool wific::homeConnect()
+{
     M5.Lcd.printf("\nConnecting to %s", wifi_settings.ssid);
     WiFi.mode(WIFI_STA);
     WiFi.begin(wifi_settings.ssid, wifi_settings.password);
+    return connTimeout();
+}*/
 
-    while (WiFi.status() != WL_CONNECTED)
+bool wific::utdConnect()
+{
+    M5.Lcd.printf("\nConnecting to %s", wifi_settings.edu);
+    WiFi.mode(WIFI_STA);
+    //esp_wifi_sta_wpa2_ent_set_ca_cert((uint8_t *)wifi_settings.ext_root_CA, strlen(wifi_settings.ext_root_CA) + 1);
+    esp_wifi_sta_wpa2_ent_set_identity((uint8_t *)EAP_ID, strlen(EAP_ID));
+    esp_wifi_sta_wpa2_ent_set_username((uint8_t *)EAP_ID, strlen(EAP_ID));
+    esp_wifi_sta_wpa2_ent_set_password((uint8_t *)EAP_PASS, strlen(EAP_PASS));
+    esp_wpa2_config_t config = WPA2_CONFIG_INIT_DEFAULT();
+    esp_wifi_sta_wpa2_ent_enable(&config);
+    WiFi.begin(wifi_settings.edu);
+    return connTimeout();
+}
+
+bool wific::connTimeout()
+{
+    int timeout = 0;
+
+    while (WiFi.status() != WL_CONNECTED && timeout < 30)
     {
         delay(500);
         M5.Lcd.print(".");
+        timeout++;
     }
-    M5.Lcd.printf("Success\n");
+    if (timeout >= 30)
+    {
+        M5.Lcd.print("Timeout connecting to UTD WiFI... switching to auto connect mode");
+        return false;
+    }
+
+    return true;
+}
+
+void wific::initWifi()
+{
+    /*int n = WiFi.scanNetworks();
+    bool utdConn = false, utdAttempt = false;
+    for (int i = 0; i < n && !utdAttempt; ++i)
+    {
+        if(WiFi.SSID(i) == wifi_settings.edu)
+        {
+            M5.Lcd.printf("SSID %d: %s", i, WiFi.SSID(i));
+            utdConn = utdConnect();
+            utdAttempt = true;
+        }
+    }
+    if (!utdConn)
+    {
+        wifiManager.autoConnect("ESP32_AP", "password123");
+    }*/
+    /*M5.Lcd.printf("Press 1 if connecting to home network\nPress 2 if connecting to EduRoam");
+    bool a = false, b = false;
+    while(!a && !b)
+    {
+        M5.update();
+        a = M5.BtnA.wasPressed();
+        b = M5.BtnB.wasPressed();
+    }
+    if (a)
+    {
+        while (!homeConnect())
+        {
+            M5.Lcd.printf("Wifi is having problems connecting :(\n Restarting...");
+            ESP.restart();
+        }
+    }
+    else
+    {
+        while (!utdConnect())
+        {
+            M5.Lcd.printf("Wifi is having problems connecting :(\n Restarting...");
+            ESP.restart();
+        }
+    }
+    M5.Lcd.printf("Success\n");*/
+    wifiManager.autoConnect("ESP32_AP", "password123");
 
     //connect to NTP & test
     configTime(0, 0, "pool.ntp.org");
@@ -45,7 +117,8 @@ void wific::initWifi()
         char garbo[256];
         M5.Lcd.printf("Connection failed! Error %d", m5client.lastError(garbo,256));
     }
-    M5.Lcd.printf("Success\n");
+    else
+        M5.Lcd.printf("Success\n");
 
     // set up mqtt server details
     psclient.setClient(m5client);
@@ -66,7 +139,7 @@ void wific::initWifi()
     }
     if(psclient.connected())
     {
-        M5.Lcd.print("success");
+        M5.Lcd.print("Success");
     }
     
     psclient.subscribe(SUBTOPIC);

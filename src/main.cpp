@@ -56,7 +56,7 @@ void loop() {
     {
       M5.Lcd.clear();
       M5.Lcd.setCursor(0,0);
-      M5.Lcd.printf("Sensor reading and connection Paused.\n");
+      M5.Lcd.printf("Sensor reading and connection paused.\n");
     }
     else
     {
