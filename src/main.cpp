@@ -11,10 +11,11 @@ wific wifi;
 
 
 const char* TAG = "MAIN";
-const char* ROOM_NAME = "room1";
+const char* ROOM_NAME = "Office";
 const int SEND_INTERVAL = 10000;
 bool pauseConnect = false;
 long unsigned int currentMillis;
+int dryTime;
 
 bool env_sensor(float*, float*, float*);
 float earth_sensor();
@@ -41,6 +42,7 @@ void setup() {
   dacWrite(25,0);
 
   currentMillis = millis();
+  dryTime = 0;
 }
 
 void loop() {
@@ -49,6 +51,7 @@ void loop() {
   StaticJsonDocument<JSON_OBJECT_SIZE(6)> jdata;
   String jout;
 
+  // pause connection on right button press
   if (M5.BtnC.wasPressed())
   {
     pauseConnect = !pauseConnect;
@@ -64,6 +67,7 @@ void loop() {
     }
   }
 
+  // if the time interval has passed, send data
   if (((millis() - currentMillis) >= SEND_INTERVAL) && !pauseConnect)
   {
     currentMillis = millis();
@@ -73,6 +77,16 @@ void loop() {
     // retrieve earth_sensor info
     rh = earth_sensor();
 
+    // reset or increment dryTime
+    if (rh < 80)
+    {
+        dryTime++;
+    }
+    else 
+    {
+      dryTime = 0;
+    }
+
     // skip loop if sensor information wasn't retrieved
     if (sensor_success)
     {
@@ -81,15 +95,15 @@ void loop() {
       M5.Lcd.setCursor(0,0);
       long unsigned int timestamp = wifi.getTimestamp();
       M5.Lcd.printf("Temperature: %2.2f*C  \nHumidity: %0.2f%%  \nPressure: %0.2fPa\r\n", temp, humidity, pressure);
-      M5.Lcd.printf("Analog Read: %f\n", rh);
+      M5.Lcd.printf("Moisture: %f\n", rh);
 
       // serialize data into JSON
       jdata["Time"].set(timestamp);
       jdata["Room"].set(ROOM_NAME);
       jdata["Temperature"].set(temp);
       jdata["Humidity"].set(humidity);
-      jdata["Pressure"].set(pressure);
       jdata["Moisture"].set(rh);
+      jdata["DryTime"].set(dryTime);
 
       serializeJson(jdata, jout); 
 
@@ -126,7 +140,11 @@ float earth_sensor()
 {
   float percent;
   uint16_t anaRead = analogRead(36);
-  percent = map(anaRead, 4095, 0, 0, 100); 
+  percent = map(anaRead, 4095, 1495, 0, 100); 
+  if (percent > 100)
+  {
+    percent = 100;
+  }
 
   return percent;
 }

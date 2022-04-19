@@ -26,8 +26,7 @@ class wific {
         WiFiClientSecure m5client;
         PubSubClient psclient;
 
-        //bool homeConnect();
-        bool utdConnect();
-        bool connTimeout();
+        //bool utdConnect();
+        //bool connTimeout();
         void psErr(int8_t mqerr);
 };

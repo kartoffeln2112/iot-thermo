@@ -15,15 +15,7 @@ long unsigned int wific::getTimestamp()
     return mktime(&timeinfo);
 }
 
-/*bool wific::homeConnect()
-{
-    M5.Lcd.printf("\nConnecting to %s", wifi_settings.ssid);
-    WiFi.mode(WIFI_STA);
-    WiFi.begin(wifi_settings.ssid, wifi_settings.password);
-    return connTimeout();
-}*/
-
-bool wific::utdConnect()
+/*bool wific::utdConnect()
 {
     M5.Lcd.printf("\nConnecting to %s", wifi_settings.edu);
     WiFi.mode(WIFI_STA);
@@ -54,7 +46,7 @@ bool wific::connTimeout()
     }
 
     return true;
-}
+}*/
 
 void wific::initWifi()
 {
