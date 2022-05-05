@@ -1,95 +1,39 @@
+/* Wifi Setup code for wifi related functions in the IoT Thermo project.
+    Detailed info on functions can be found in wifiSetup.h.
+
+    Functions:
+        wific() - setup object
+        initWifi() - setup wifi connection, NTP connection (for timestamps), SSL and MQTT connection
+        checkMQTTConnect() - check MQTT connection is current, and ping MQTT
+        checkWifiConnect() - check wifi connection is current
+        publish(char*) - publish a message to MQTT
+        getTimestamp() - get the current time from NTP
+        psErr(int8_t) - pubsubclient error message print, message error codes found on: https://pubsubclient.knolleary.net/api
+*/
+
 #include "wifiSetup.h"
 
 wific::wific(){return;}
-void msgReceive(char* topic, uint8_t* payload, unsigned int length);
+
 
 long unsigned int wific::getTimestamp()
 {
     struct tm timeinfo;
+    // get local time from NTP
     if (!getLocalTime(&timeinfo))
     {
         M5.Lcd.printf("Failed to obtain time");
         return 0;
     }
+    // print local time and return
     M5.Lcd.println(&timeinfo, "%A, %B %d %Y %H:%M:%S");
     return mktime(&timeinfo);
 }
 
-/*bool wific::utdConnect()
-{
-    M5.Lcd.printf("\nConnecting to %s", wifi_settings.edu);
-    WiFi.mode(WIFI_STA);
-    //esp_wifi_sta_wpa2_ent_set_ca_cert((uint8_t *)wifi_settings.ext_root_CA, strlen(wifi_settings.ext_root_CA) + 1);
-    esp_wifi_sta_wpa2_ent_set_identity((uint8_t *)EAP_ID, strlen(EAP_ID));
-    esp_wifi_sta_wpa2_ent_set_username((uint8_t *)EAP_ID, strlen(EAP_ID));
-    esp_wifi_sta_wpa2_ent_set_password((uint8_t *)EAP_PASS, strlen(EAP_PASS));
-    esp_wpa2_config_t config = WPA2_CONFIG_INIT_DEFAULT();
-    esp_wifi_sta_wpa2_ent_enable(&config);
-    WiFi.begin(wifi_settings.edu);
-    return connTimeout();
-}
-
-bool wific::connTimeout()
-{
-    int timeout = 0;
-
-    while (WiFi.status() != WL_CONNECTED && timeout < 30)
-    {
-        delay(500);
-        M5.Lcd.print(".");
-        timeout++;
-    }
-    if (timeout >= 30)
-    {
-        M5.Lcd.print("Timeout connecting to UTD WiFI... switching to auto connect mode");
-        return false;
-    }
-
-    return true;
-}*/
 
 void wific::initWifi()
 {
-    /*int n = WiFi.scanNetworks();
-    bool utdConn = false, utdAttempt = false;
-    for (int i = 0; i < n && !utdAttempt; ++i)
-    {
-        if(WiFi.SSID(i) == wifi_settings.edu)
-        {
-            M5.Lcd.printf("SSID %d: %s", i, WiFi.SSID(i));
-            utdConn = utdConnect();
-            utdAttempt = true;
-        }
-    }
-    if (!utdConn)
-    {
-        wifiManager.autoConnect("ESP32_AP", "password123");
-    }*/
-    /*M5.Lcd.printf("Press 1 if connecting to home network\nPress 2 if connecting to EduRoam");
-    bool a = false, b = false;
-    while(!a && !b)
-    {
-        M5.update();
-        a = M5.BtnA.wasPressed();
-        b = M5.BtnB.wasPressed();
-    }
-    if (a)
-    {
-        while (!homeConnect())
-        {
-            M5.Lcd.printf("Wifi is having problems connecting :(\n Restarting...");
-            ESP.restart();
-        }
-    }
-    else
-    {
-        while (!utdConnect())
-        {
-            M5.Lcd.printf("Wifi is having problems connecting :(\n Restarting...");
-            ESP.restart();
-        }
-    }
-    M5.Lcd.printf("Success\n");*/
+    // start wifimanager auto connect, if no known wifi are in range, start AP to config new wifi connection
     wifiManager.autoConnect("ESP32_AP", "password123");
 
     //connect to NTP & test
@@ -115,7 +59,6 @@ void wific::initWifi()
     // set up mqtt server details
     psclient.setClient(m5client);
     psclient.setServer(awsset.endpoint, awsset.port);
-    psclient.setCallback(msgReceive);
 
     // connect to MQTT
     M5.Lcd.print("Connecting to MQTT...");
@@ -134,54 +77,57 @@ void wific::initWifi()
         M5.Lcd.print("Success");
     }
     
+    // subscribe to topic
     psclient.subscribe(SUBTOPIC);
+    if(!psclient.subscribe(SUBTOPIC))
+    {
+        M5.Lcd.printf("MQTT channel subscription failure. Error code = %s", psErr(psclient.state()));
+    }
     delay(1000);
 
     return;
 }
 
-void msgReceive(char* topic, uint8_t* payload, unsigned int length)
-{
-    M5.Lcd.printf("\nMessage received on %s: ", topic);
-    for (int i = 0; i < length; i++)
-    {
-        M5.Lcd.print((char)payload[i]);
-    }
-    return;
-}
 
 void wific::checkMQTTConnect()
 {
+    // check that pubsubclient is connected, reconnect if not
     while (!psclient.connected())
     {
         M5.Lcd.printf("\nReconnecting to MQTT...");
         if (psclient.connect(awsset.thingName))
         {
             M5.Lcd.print("success!");
+
+            // resubscribe after reconnecting
             if(!psclient.subscribe(SUBTOPIC))
             {
-                psErr(psclient.state());
+                M5.Lcd.printf("MQTT channel subscription failure. Error code = %s", psErr(psclient.state()));
             }
         }
         else
         {
+            // if MQTT reconnect fail, ensure that wifi is connected
             checkWifiConnect();
-            M5.Lcd.print("Failed to connect. Error code = ");
-            psErr(psclient.state());
+            M5.Lcd.printf("Failed to connect. Error code = %s", psErr(psclient.state()));
         }
     }
 
+    // ping to keep connection current
     psclient.loop();
 
     return;
 }
 
+
 void wific::checkWifiConnect()
 {
+    // if wifi not connected, reconnect
     if (WiFi.status() != WL_CONNECTED)
     {
         WiFi.reconnect();
     }
+    // if ssl not connected, reconnect
     if (!m5client.connected())
     {
         m5client.connect(awsset.endpoint, awsset.port);
@@ -189,9 +135,13 @@ void wific::checkWifiConnect()
     return;
 }
 
+
 void wific::publish(const char* msg)
 {
+    // attempt to publish to MQTT
     bool success = psclient.publish(PUBTOPIC, msg);
+
+    // print success or error message
     M5.Lcd.printf("Sending data to MQTT: ");
     if (success)
     {
@@ -199,34 +149,34 @@ void wific::publish(const char* msg)
     }
     else
     {
-        M5.Lcd.print("Failed. Error code = ");
-        psErr(psclient.state());
+        M5.Lcd.printf("Failed. Error code = %s", psErr(psclient.state()));
     }
     return;
 }
 
-void wific::psErr(int8_t mqerr)
+
+const char* wific::psErr(int8_t mqerr)
 {
-    if (mqerr == MQTT_CONNECTION_TIMEOUT)
-        Serial.print("Connection timeout");
-    else if (mqerr == MQTT_CONNECTION_LOST)
-        Serial.print("Connection lost");
-    else if (mqerr == MQTT_CONNECT_FAILED)
-        Serial.print("Connect failed");
-    else if (mqerr == MQTT_DISCONNECTED)
-        Serial.print("Disconnected");
-    else if (mqerr == MQTT_CONNECTED)
-        Serial.print("Connected");
-    else if (mqerr == MQTT_CONNECT_BAD_PROTOCOL)
-        Serial.print("Connect bad protocol");
-    else if (mqerr == MQTT_CONNECT_BAD_CLIENT_ID)
-        Serial.print("Connect bad Client-ID");
-    else if (mqerr == MQTT_CONNECT_UNAVAILABLE)
-        Serial.print("Connect unavailable");
-    else if (mqerr == MQTT_CONNECT_BAD_CREDENTIALS)
-        Serial.print("Connect bad credentials");
-    else if (mqerr == MQTT_CONNECT_UNAUTHORIZED)
-        Serial.print("Connect unauthorized");
+    if (mqerr == -4)
+        return "Connection timeout";
+    else if (mqerr == -3)
+        return "Connection lost";
+    else if (mqerr == -2)
+        return"Connect failed";
+    else if (mqerr == -1)
+        return "Disconnected";
+    else if (mqerr == 0)
+        return "Connected";
+    else if (mqerr == 1)
+        return "Connect bad protocol";
+    else if (mqerr == 2)
+        return "Connect bad client id";
+    else if (mqerr == 3)
+        return "Connect unavailable";
+    else if (mqerr == 4)
+        return "Connect bad credentials";
+    else if (mqerr == 5)
+        return "Connect unauthorized";
 
     return;
 }

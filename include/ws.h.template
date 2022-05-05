@@ -1,10 +1,11 @@
+/* contains configured information for connection to AWS MQTT.
+    object AWS_SETTINGS contains endpoint and port for connecting, 
+    thingName for identifying, and certificates to secure identity.
+    certificates must be unique for each M5Stack to connect.
+*/
+
 #define SUBTOPIC "" //add AWS subscribe topic for IOT Thing
 #define PUBTOPIC "" //add AWS publish topic for IOT Thing
-
-struct WIFI_SETTINGS {
-    char * ssid = "";
-    char * password = "";
-};
 
 struct AWS_SETTINGS {
     const char* thingName = "";     //add AWS Thing name
